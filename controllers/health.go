@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/goadesign/goa"
-	"github.com/goadesign/goa-cellar/app"
-	"github.com/goadesign/goa-cellar/store"
+	"github.com/illyabusigin/goa-cellar/app"
+	"github.com/illyabusigin/goa-cellar/store"
 )
 
 // HealthController implements the account resource.

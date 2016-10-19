@@ -7,11 +7,11 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/goadesign/goa"
-	"github.com/goadesign/goa-cellar/app"
-	"github.com/goadesign/goa-cellar/controllers"
-	"github.com/goadesign/goa-cellar/store"
 	"github.com/goadesign/goa/logging/kit"
 	"github.com/goadesign/goa/middleware"
+	"github.com/illyabusigin/goa-cellar/app"
+	"github.com/illyabusigin/goa-cellar/controllers"
+	"github.com/illyabusigin/goa-cellar/store"
 )
 
 func main() {
