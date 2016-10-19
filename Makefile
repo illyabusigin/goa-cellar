@@ -8,6 +8,8 @@
 # - build     compile executable
 # - ae-build  build appengine
 # - ae-dev    deploy to local (dev) appengine
+# - convox-dev deploy to local using convox
+# - convox-deploy deploy to AWS using convox
 # - ae-deploy deploy to appengine
 #
 # Meta targets:
@@ -38,11 +40,12 @@ clean:
 	@rm -f cellar
 
 generate:
-	@goagen app     -d github.com/goadesign/goa-cellar/design
-	@goagen swagger -d github.com/goadesign/goa-cellar/design -o public
-	@goagen schema  -d github.com/goadesign/goa-cellar/design -o public
-	@goagen client  -d github.com/goadesign/goa-cellar/design
-	@goagen js      -d github.com/goadesign/goa-cellar/design -o public
+	@goagen app     -d github.com/illyabusigin/goa-cellar/design
+	@goagen swagger -d github.com/illyabusigin/goa-cellar/design -o public
+	@goagen schema  -d github.com/illyabusigin/goa-cellar/design -o public
+	@goagen client  -d github.com/illyabusigin/goa-cellar/design
+	@goagen js      -d github.com/illyabusigin/goa-cellar/design -o public
+  @goagen --design=github.com/goadesign/gorma-cellar/design gen --pkg-path=github.com/goadesign/gorma
 
 build:
 	@go build -o cellar
@@ -53,6 +56,12 @@ ae-build:
 		ln -s $(CURRENT_DIR)/appengine.go $(HOME)/cellar/appengine.go; \
 		ln -s $(CURRENT_DIR)/app.yaml     $(HOME)/cellar/app.yaml; \
 	fi
+
+convox-dev:
+	@convox start --file=docker-compose.local.yml
+
+convox-deploy:
+	@convox deploy --app=cellar --wait
 
 ae-deploy: ae-build
 	cd $(HOME)/cellar
