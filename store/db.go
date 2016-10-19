@@ -292,7 +292,15 @@ func (db *DB) NewBottle(account int) (model BottleModel, err error) {
 func (db *DB) SaveBottle(model BottleModel) {
 	db.Lock()
 	defer db.Unlock()
-	db.bottles[model.AccountID] = append(db.bottles[model.AccountID], &model)
+
+	bottles := db.bottles[model.AccountID]
+
+	for idx, bottle := range bottles {
+		if bottle.ID == model.ID {
+			bottles[idx] = &model
+			break
+		}
+	}
 }
 
 // DeleteBottle deletes bottle from bottlesbase.
