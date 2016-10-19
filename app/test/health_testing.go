@@ -3,8 +3,8 @@
 //
 // Generated with goagen v1.0.0, command line:
 // $ goagen
-// --design=github.com/goadesign/goa-cellar/design
-// --out=$(GOPATH)/src/github.com/goadesign/goa-cellar
+// --design=github.com/illyabusigin/goa-cellar/design
+// --out=$(GOPATH)/src/github.com/illyabusigin/goa-cellar
 // --version=v1.0.0
 //
 // The content of this file is auto-generated, DO NOT MODIFY
@@ -16,8 +16,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/goadesign/goa"
-	"github.com/goadesign/goa-cellar/app"
 	"github.com/goadesign/goa/goatest"
+	"github.com/illyabusigin/goa-cellar/app"
 	"golang.org/x/net/context"
 	"io"
 	"log"

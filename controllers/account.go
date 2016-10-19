@@ -1,110 +1,75 @@
 package controllers
 
 import (
-	"time"
-
 	"github.com/goadesign/goa"
 	"github.com/illyabusigin/goa-cellar/app"
-	"github.com/illyabusigin/goa-cellar/store"
+	"github.com/illyabusigin/goa-cellar/models"
+	"github.com/jinzhu/gorm"
 )
-
-// ToAccountMedia builds an account media type from an account model.
-func ToAccountMedia(account *store.AccountModel) *app.Account {
-	return &app.Account{
-		ID:        account.ID,
-		Href:      app.AccountHref(account.ID),
-		Name:      account.Name,
-		CreatedAt: account.CreatedAt,
-		CreatedBy: account.CreatedBy,
-	}
-}
-
-// ToAccountMediaTiny builds an account media type with tiny view from an account model.
-func ToAccountMediaTiny(account *store.AccountModel) *app.AccountTiny {
-	return &app.AccountTiny{
-		ID:   account.ID,
-		Href: app.AccountHref(account.ID),
-		Name: account.Name,
-	}
-}
-
-// ToAccountLink builds an account link from an account model.
-func ToAccountLink(account *store.AccountModel) *app.AccountLink {
-	return &app.AccountLink{
-		ID:   account.ID,
-		Href: app.AccountHref(account.ID),
-	}
-}
 
 // AccountController implements the account resource.
 type AccountController struct {
 	*goa.Controller
-	db *store.DB
+	storage models.AccountStorage
 }
 
-// NewAccount creates a account controller.
-func NewAccount(service *goa.Service, db *store.DB) *AccountController {
+// NewAccount creates a bottle controller.
+func NewAccount(service *goa.Service, db *gorm.DB) *AccountController {
 	return &AccountController{
 		Controller: service.NewController("Account"),
-		db:         db,
 	}
 }
 
-// List retrieves all the accounts.
-func (b *AccountController) List(c *app.ListAccountContext) error {
-	accounts := b.db.GetAccounts()
-	res := make(app.AccountTinyCollection, len(accounts))
-	for i, account := range accounts {
-		a := &app.AccountTiny{
-			ID:   account.ID,
-			Href: app.AccountHref(account.ID),
-			Name: account.Name,
-		}
-		res[i] = a
+// Create runs the create action.
+func (c *AccountController) Create(ctx *app.CreateAccountContext) error {
+	a := models.Account{}
+	a.Name = ctx.Payload.Name
+	err := c.storage.Add(ctx.Context, &a)
+	if err != nil {
+		return ErrDatabaseError(err)
 	}
-	return c.OKTiny(res)
+	ctx.ResponseData.Header().Set("Location", app.AccountHref(a.ID))
+	return ctx.Created()
 }
 
-// Show retrieves the account with the given id.
-func (b *AccountController) Show(c *app.ShowAccountContext) error {
-	account, ok := b.db.GetAccount(c.AccountID)
-	if !ok {
-		return c.NotFound()
+// Delete runs the delete action.
+func (c *AccountController) Delete(ctx *app.DeleteAccountContext) error {
+	err := c.storage.Delete(ctx.Context, ctx.AccountID)
+	if err != nil {
+		return ErrDatabaseError(err)
 	}
-	return c.OK(ToAccountMedia(&account))
+	return ctx.NoContent()
 }
 
-// Create records a new account.
-func (b *AccountController) Create(c *app.CreateAccountContext) error {
-	account := b.db.NewAccount()
-	payload := c.Payload
-	account.Name = payload.Name
-	account.CreatedAt = time.Now()
-	b.db.SaveAccount(account)
-	c.ResponseData.Header().Set("Location", app.AccountHref(account.ID))
-	return c.Created()
+// Show runs the show action.
+func (c *AccountController) Show(ctx *app.ShowAccountContext) error {
+	account, err := c.storage.OneAccount(ctx.Context, ctx.AccountID)
+	if err == gorm.ErrRecordNotFound {
+		return ctx.NotFound()
+	} else if err != nil {
+		return ErrDatabaseError(err)
+	}
+	account.Href = app.AccountHref(account.ID)
+	return ctx.OK(account)
 }
 
-// Update updates a account field(s).
-func (b *AccountController) Update(c *app.UpdateAccountContext) error {
-	account, ok := b.db.GetAccount(c.AccountID)
-	if !ok {
-		return c.NotFound()
-	}
-	payload := c.Payload
-	if payload.Name != "" {
-		account.Name = payload.Name
-	}
-	b.db.SaveAccount(account)
-	return c.NoContent()
+// List
+func (c *AccountController) List(ctx *app.ListAccountContext) error {
+	accounts := c.storage.ListAccount(ctx.Context)
+	return ctx.OK(accounts)
+
 }
 
-// Delete removes a account from the database.
-func (b *AccountController) Delete(c *app.DeleteAccountContext) error {
-	account, ok := b.db.GetAccount(c.AccountID)
-	if !ok {
-		return c.NotFound()
+// Update runs the update action.
+func (c *AccountController) Update(ctx *app.UpdateAccountContext) error {
+	m, err := c.storage.Get(ctx.Context, ctx.AccountID)
+	if err == gorm.ErrRecordNotFound {
+		return ctx.NotFound()
 	}
-	b.db.DeleteAccount(account)
-	return c.NoContent()
+	m.Name = ctx.Payload.Name
+	err = c.storage.Update(ctx, m)
+	if err != nil {
+		return ErrDatabaseError(err)
+	}
+	return ctx.NoContent()
 }

@@ -5,3 +5,9 @@ services:
     ports:
       - 8081:8081
     command: goa-cellar
+    links:
+      - database
+  database:
+    image: convox/mysql
+    ports:
+      - 3306

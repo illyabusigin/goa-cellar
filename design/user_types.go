@@ -39,6 +39,12 @@ var BottlePayload = Type("BottlePayload", func() {
 	Attribute("region", func() {
 		Example("Napa Valley")
 	})
+	Attribute("rating", Integer, func() {
+		Minimum(1)
+		Maximum(5)
+		Example(1)
+	})
+
 	Attribute("review", func() {
 		MinLength(3)
 		MaxLength(300)

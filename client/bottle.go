@@ -15,6 +15,7 @@ type CreateBottlePayload struct {
 	Color     string  `form:"color" json:"color" xml:"color"`
 	Country   *string `form:"country,omitempty" json:"country,omitempty" xml:"country,omitempty"`
 	Name      string  `form:"name" json:"name" xml:"name"`
+	Rating    *int    `form:"rating,omitempty" json:"rating,omitempty" xml:"rating,omitempty"`
 	Region    *string `form:"region,omitempty" json:"region,omitempty" xml:"region,omitempty"`
 	Review    *string `form:"review,omitempty" json:"review,omitempty" xml:"review,omitempty"`
 	Sweetness *int    `form:"sweetness,omitempty" json:"sweetness,omitempty" xml:"sweetness,omitempty"`

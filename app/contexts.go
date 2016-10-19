@@ -3,8 +3,8 @@
 //
 // Generated with goagen v1.0.0, command line:
 // $ goagen
-// --design=github.com/goadesign/goa-cellar/design
-// --out=$(GOPATH)/src/github.com/goadesign/goa-cellar
+// --design=github.com/illyabusigin/goa-cellar/design
+// --out=$(GOPATH)/src/github.com/illyabusigin/goa-cellar
 // --version=v1.0.0
 //
 // The content of this file is auto-generated, DO NOT MODIFY
@@ -364,6 +364,7 @@ type createBottlePayload struct {
 	Color     *string `form:"color,omitempty" json:"color,omitempty" xml:"color,omitempty"`
 	Country   *string `form:"country,omitempty" json:"country,omitempty" xml:"country,omitempty"`
 	Name      *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	Rating    *int    `form:"rating,omitempty" json:"rating,omitempty" xml:"rating,omitempty"`
 	Region    *string `form:"region,omitempty" json:"region,omitempty" xml:"region,omitempty"`
 	Review    *string `form:"review,omitempty" json:"review,omitempty" xml:"review,omitempty"`
 	Sweetness *int    `form:"sweetness,omitempty" json:"sweetness,omitempty" xml:"sweetness,omitempty"`
@@ -403,6 +404,16 @@ func (payload *createBottlePayload) Validate() (err error) {
 	if payload.Name != nil {
 		if utf8.RuneCountInString(*payload.Name) < 2 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError(`raw.name`, *payload.Name, utf8.RuneCountInString(*payload.Name), 2, true))
+		}
+	}
+	if payload.Rating != nil {
+		if *payload.Rating < 1 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError(`raw.rating`, *payload.Rating, 1, true))
+		}
+	}
+	if payload.Rating != nil {
+		if *payload.Rating > 5 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError(`raw.rating`, *payload.Rating, 5, false))
 		}
 	}
 	if payload.Review != nil {
@@ -460,6 +471,9 @@ func (payload *createBottlePayload) Publicize() *CreateBottlePayload {
 	if payload.Name != nil {
 		pub.Name = *payload.Name
 	}
+	if payload.Rating != nil {
+		pub.Rating = payload.Rating
+	}
 	if payload.Region != nil {
 		pub.Region = payload.Region
 	}
@@ -486,6 +500,7 @@ type CreateBottlePayload struct {
 	Color     string  `form:"color" json:"color" xml:"color"`
 	Country   *string `form:"country,omitempty" json:"country,omitempty" xml:"country,omitempty"`
 	Name      string  `form:"name" json:"name" xml:"name"`
+	Rating    *int    `form:"rating,omitempty" json:"rating,omitempty" xml:"rating,omitempty"`
 	Region    *string `form:"region,omitempty" json:"region,omitempty" xml:"region,omitempty"`
 	Review    *string `form:"review,omitempty" json:"review,omitempty" xml:"review,omitempty"`
 	Sweetness *int    `form:"sweetness,omitempty" json:"sweetness,omitempty" xml:"sweetness,omitempty"`
@@ -519,6 +534,16 @@ func (payload *CreateBottlePayload) Validate() (err error) {
 	}
 	if utf8.RuneCountInString(payload.Name) < 2 {
 		err = goa.MergeErrors(err, goa.InvalidLengthError(`raw.name`, payload.Name, utf8.RuneCountInString(payload.Name), 2, true))
+	}
+	if payload.Rating != nil {
+		if *payload.Rating < 1 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError(`raw.rating`, *payload.Rating, 1, true))
+		}
+	}
+	if payload.Rating != nil {
+		if *payload.Rating > 5 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError(`raw.rating`, *payload.Rating, 5, false))
+		}
 	}
 	if payload.Review != nil {
 		if utf8.RuneCountInString(*payload.Review) < 3 {

@@ -3,5 +3,5 @@ services:
   main:
     build: .
     ports:
-      - 8081:8081
+      - 80:8081
     command: goa-cellar

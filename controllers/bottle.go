@@ -3,87 +3,76 @@ package controllers
 import (
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/goadesign/goa"
 	"github.com/illyabusigin/goa-cellar/app"
-	"github.com/illyabusigin/goa-cellar/store"
+	"github.com/illyabusigin/goa-cellar/models"
+	"github.com/jinzhu/gorm"
 	"golang.org/x/net/websocket"
 )
-
-// ToBottleMedia converts a bottle model into a bottle media type
-func ToBottleMedia(a *store.AccountModel, b *store.BottleModel) *app.Bottle {
-	account := ToAccountMediaTiny(a)
-	link := ToAccountLink(a)
-	return &app.Bottle{
-		Account:  account,
-		Href:     app.BottleHref(b.AccountID, b.ID),
-		ID:       b.ID,
-		Links:    &app.BottleLinks{Account: link},
-		Name:     b.Name,
-		Rating:   b.Rating,
-		Varietal: b.Varietal,
-		Vineyard: b.Vineyard,
-		Vintage:  b.Vintage,
-	}
-}
 
 // BottleController implements the bottle resource.
 type BottleController struct {
 	*goa.Controller
-	db *store.DB
+	storage models.BottleStorage
 }
 
 // NewBottle creates a bottle controller.
-func NewBottle(service *goa.Service, db *store.DB) *BottleController {
+func NewBottle(service *goa.Service, db *gorm.DB) *BottleController {
 	return &BottleController{
 		Controller: service.NewController("Bottle"),
-		db:         db,
 	}
 }
 
 // List lists all the bottles in the account optionally filtering by year.
-func (b *BottleController) List(ctx *app.ListBottleContext) error {
-	var bottles []store.BottleModel
+func (c *BottleController) List(ctx *app.ListBottleContext) error {
+	var bottles []*app.Bottle
 	var err error
+
 	if ctx.Years != nil {
-		bottles, err = b.db.GetBottlesByYears(ctx.AccountID, ctx.Years)
-	} else {
-		bottles, err = b.db.GetBottles(ctx.AccountID)
-	}
-	if err != nil {
-		return ctx.NotFound()
-	}
-	bs := make([]*app.Bottle, len(bottles))
-	for i, bt := range bottles {
-		a, ok := b.db.GetAccount(bt.AccountID)
-		if !ok {
-			return ctx.NotFound()
+		defer goa.MeasureSince([]string{"goa", "db", "bottle", "listbottlebyyears"}, time.Now())
+
+		var native []*models.Bottle
+		db := c.storage.DB().(*gorm.DB)
+		err = db.Scopes(models.BottleFilterByAccount(ctx.AccountID, db)).Table("bottles").Preload("Account").Find(&native).Where("year in (?)", ctx.Years).Error
+
+		if err != nil {
+			goa.LogError(ctx, "error listing Bottle", "error", err.Error())
+			return ErrDatabaseError(err)
 		}
-		bs[i] = ToBottleMedia(&a, &bt)
+
+		for _, t := range native {
+			bottles = append(bottles, t.BottleToBottle())
+		}
+	} else {
+		bottles = c.storage.ListBottle(ctx, ctx.AccountID)
 	}
-	return ctx.OK(bs)
+
+	if err != nil {
+		return ErrDatabaseError(err)
+	}
+
+	return ctx.OK(bottles)
 }
 
 // Show retrieves the bottle with the given id.
-func (b *BottleController) Show(ctx *app.ShowBottleContext) error {
-	account, ok := b.db.GetAccount(ctx.AccountID)
-	if !ok {
-		return ctx.NotFound()
+func (c *BottleController) Show(ctx *app.ShowBottleContext) error {
+	bottle, err := c.storage.OneBottle(ctx, ctx.BottleID, ctx.AccountID)
+	if err != nil {
+		return ErrDatabaseError(err)
 	}
-	bottle, ok := b.db.GetBottle(ctx.AccountID, ctx.BottleID)
-	if !ok {
-		return ctx.NotFound()
-	}
-	return ctx.OK(ToBottleMedia(&account, &bottle))
+
+	return ctx.OK(bottle)
 }
 
 // Watch watches the bottle with the given id.
-func (b *BottleController) Watch(ctx *app.WatchBottleContext) error {
+func (c *BottleController) Watch(ctx *app.WatchBottleContext) error {
 	Watcher(ctx.AccountID, ctx.BottleID).ServeHTTP(ctx.ResponseWriter, ctx.Request)
 	return nil
 }
 
-// Echo the data received on the WebSocket.
+// Watcher will echo the data received on the WebSocket.
 func Watcher(accountID, bottleID int) websocket.Handler {
 	return func(ws *websocket.Conn) {
 		watched := fmt.Sprintf("Account: %d, Bottle: %d", accountID, bottleID)
@@ -93,93 +82,54 @@ func Watcher(accountID, bottleID int) websocket.Handler {
 }
 
 // Create records a new bottle.
-func (b *BottleController) Create(ctx *app.CreateBottleContext) error {
-	bottle, err := b.db.NewBottle(ctx.AccountID)
+func (c *BottleController) Create(ctx *app.CreateBottleContext) error {
+	bottle := c.storage.BottleFromCreateBottlePayload(ctx.Payload)
+
+	err := c.storage.Add(ctx, bottle)
+
 	if err != nil {
-		return ctx.NotFound()
+		return ErrDatabaseError(err)
 	}
-	payload := ctx.Payload
-	bottle.Name = payload.Name
-	bottle.Vintage = payload.Vintage
-	bottle.Vineyard = payload.Vineyard
-	if payload.Varietal != "" {
-		bottle.Varietal = payload.Varietal
-	}
-	if payload.Color != "" {
-		bottle.Color = payload.Color
-	}
-	if payload.Sweetness != nil {
-		bottle.Sweetness = payload.Sweetness
-	}
-	if payload.Country != nil {
-		bottle.Country = payload.Country
-	}
-	if payload.Region != nil {
-		bottle.Region = payload.Region
-	}
-	if payload.Review != nil {
-		bottle.Review = payload.Review
-	}
-	b.db.SaveBottle(bottle)
-	ctx.ResponseData.Header().Set("Location", app.BottleHref(ctx.AccountID, bottle.ID))
+
 	return ctx.Created()
 }
 
 // Update updates a bottle field(s).
-func (b *BottleController) Update(ctx *app.UpdateBottleContext) error {
-	bottle, ok := b.db.GetBottle(ctx.AccountID, ctx.BottleID)
-	if !ok {
-		return ctx.NotFound()
+func (c *BottleController) Update(ctx *app.UpdateBottleContext) error {
+	err := c.storage.UpdateFromBottlePayload(ctx, ctx.Payload, ctx.BottleID)
+	if err != nil {
+		return ErrDatabaseError(err)
 	}
-	payload := ctx.Payload
-	if payload.Name != nil {
-		bottle.Name = *payload.Name
-	}
-	if payload.Vintage != nil {
-		bottle.Vintage = *payload.Vintage
-	}
-	if payload.Vineyard != nil {
-		bottle.Vineyard = *payload.Vineyard
-	}
-	if payload.Varietal != nil {
-		bottle.Varietal = *payload.Varietal
-	}
-	if payload.Color != nil {
-		bottle.Color = *payload.Color
-	}
-	if payload.Sweetness != nil {
-		bottle.Sweetness = payload.Sweetness
-	}
-	if payload.Country != nil {
-		bottle.Country = payload.Country
-	}
-	if payload.Region != nil {
-		bottle.Region = payload.Region
-	}
-	if payload.Review != nil {
-		bottle.Review = payload.Review
-	}
-	b.db.SaveBottle(bottle)
+
 	return ctx.NoContent()
 }
 
 // Delete removes a bottle from the database.
-func (b *BottleController) Delete(ctx *app.DeleteBottleContext) error {
-	bottle, ok := b.db.GetBottle(ctx.AccountID, ctx.BottleID)
-	if !ok {
-		return ctx.NotFound()
+func (c *BottleController) Delete(ctx *app.DeleteBottleContext) error {
+	err := c.storage.Delete(ctx, ctx.BottleID)
+	if err != nil {
+		return ErrDatabaseError(err)
 	}
-	b.db.DeleteBottle(bottle)
+
 	return ctx.NoContent()
 }
 
 // Rate rates a bottle.
-func (b *BottleController) Rate(ctx *app.RateBottleContext) error {
-	bottle, ok := b.db.GetBottle(ctx.AccountID, ctx.BottleID)
-	if !ok {
+func (c *BottleController) Rate(ctx *app.RateBottleContext) error {
+	_, err := c.storage.OneBottle(ctx, ctx.BottleID, ctx.AccountID)
+	if err != nil {
 		return ctx.NotFound()
 	}
-	bottle.Rating = &ctx.Payload.Rating
-	b.db.SaveBottle(bottle)
+
+	updated := &app.BottlePayload{
+		Rating: &ctx.Payload.Rating,
+	}
+
+	err = c.storage.UpdateFromBottlePayload(ctx, updated, ctx.BottleID)
+
+	if err != nil {
+		return ErrDatabaseError(err)
+	}
+
 	return ctx.NoContent()
 }

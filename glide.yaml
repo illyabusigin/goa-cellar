@@ -26,3 +26,8 @@ import:
   - context
   - websocket
 - package: github.com/goadesign/gorma
+- package: github.com/jinzhu/gorm
+- package: github.com/go-sql-driver/mysql
+- package: github.com/mattes/migrate
+  subpackages:
+  - driver/mysql

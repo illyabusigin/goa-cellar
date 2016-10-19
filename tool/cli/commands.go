@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/goadesign/goa"
-	"github.com/goadesign/goa-cellar/client"
 	goaclient "github.com/goadesign/goa/client"
 	uuid "github.com/goadesign/goa/uuid"
+	"github.com/illyabusigin/goa-cellar/client"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 	"log"
@@ -159,12 +159,13 @@ Payload example:
 Payload example:
 
 {
-   "color": "white",
+   "color": "red",
    "country": "USA",
    "name": "Number 8",
+   "rating": 1,
    "region": "Napa Valley",
    "review": "Great and inexpensive",
-   "sweetness": 1,
+   "sweetness": 3,
    "varietal": "Merlot",
    "vineyard": "Asti",
    "vintage": 2012
@@ -248,7 +249,7 @@ Payload example:
 Payload example:
 
 {
-   "rating": 3
+   "rating": 1
 }`,
 		RunE: func(cmd *cobra.Command, args []string) error { return tmp8.Run(c, args) },
 	}
@@ -308,12 +309,13 @@ Payload example:
 Payload example:
 
 {
-   "color": "white",
+   "color": "red",
    "country": "USA",
    "name": "Number 8",
+   "rating": 1,
    "region": "Napa Valley",
    "review": "Great and inexpensive",
-   "sweetness": 1,
+   "sweetness": 3,
    "varietal": "Merlot",
    "vineyard": "Asti",
    "vintage": 2012

@@ -38,6 +38,7 @@ clean:
 	@rm -rf public/schema
 	@rm -rf public/js
 	@rm -f cellar
+	@rm -f models
 
 generate:
 	@goagen app     -d github.com/illyabusigin/goa-cellar/design
@@ -45,7 +46,7 @@ generate:
 	@goagen schema  -d github.com/illyabusigin/goa-cellar/design -o public
 	@goagen client  -d github.com/illyabusigin/goa-cellar/design
 	@goagen js      -d github.com/illyabusigin/goa-cellar/design -o public
-  @goagen --design=github.com/goadesign/gorma-cellar/design gen --pkg-path=github.com/goadesign/gorma
+	@goagen --design=github.com/illyabusigin/goa-cellar/design gen --pkg-path=github.com/goadesign/gorma
 
 build:
 	@go build -o cellar

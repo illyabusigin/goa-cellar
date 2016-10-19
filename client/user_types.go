@@ -3,8 +3,8 @@
 //
 // Generated with goagen v1.0.0, command line:
 // $ goagen
-// --design=github.com/goadesign/goa-cellar/design
-// --out=$(GOPATH)/src/github.com/goadesign/goa-cellar
+// --design=github.com/illyabusigin/goa-cellar/design
+// --out=$(GOPATH)/src/github.com/illyabusigin/goa-cellar
 // --version=v1.0.0
 //
 // The content of this file is auto-generated, DO NOT MODIFY
@@ -22,6 +22,7 @@ type bottlePayload struct {
 	Color     *string `form:"color,omitempty" json:"color,omitempty" xml:"color,omitempty"`
 	Country   *string `form:"country,omitempty" json:"country,omitempty" xml:"country,omitempty"`
 	Name      *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	Rating    *int    `form:"rating,omitempty" json:"rating,omitempty" xml:"rating,omitempty"`
 	Region    *string `form:"region,omitempty" json:"region,omitempty" xml:"region,omitempty"`
 	Review    *string `form:"review,omitempty" json:"review,omitempty" xml:"review,omitempty"`
 	Sweetness *int    `form:"sweetness,omitempty" json:"sweetness,omitempty" xml:"sweetness,omitempty"`
@@ -45,6 +46,16 @@ func (ut *bottlePayload) Validate() (err error) {
 	if ut.Name != nil {
 		if utf8.RuneCountInString(*ut.Name) < 2 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError(`response.name`, *ut.Name, utf8.RuneCountInString(*ut.Name), 2, true))
+		}
+	}
+	if ut.Rating != nil {
+		if *ut.Rating < 1 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError(`response.rating`, *ut.Rating, 1, true))
+		}
+	}
+	if ut.Rating != nil {
+		if *ut.Rating > 5 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError(`response.rating`, *ut.Rating, 5, false))
 		}
 	}
 	if ut.Review != nil {
@@ -102,6 +113,9 @@ func (ut *bottlePayload) Publicize() *BottlePayload {
 	if ut.Name != nil {
 		pub.Name = ut.Name
 	}
+	if ut.Rating != nil {
+		pub.Rating = ut.Rating
+	}
 	if ut.Region != nil {
 		pub.Region = ut.Region
 	}
@@ -128,6 +142,7 @@ type BottlePayload struct {
 	Color     *string `form:"color,omitempty" json:"color,omitempty" xml:"color,omitempty"`
 	Country   *string `form:"country,omitempty" json:"country,omitempty" xml:"country,omitempty"`
 	Name      *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	Rating    *int    `form:"rating,omitempty" json:"rating,omitempty" xml:"rating,omitempty"`
 	Region    *string `form:"region,omitempty" json:"region,omitempty" xml:"region,omitempty"`
 	Review    *string `form:"review,omitempty" json:"review,omitempty" xml:"review,omitempty"`
 	Sweetness *int    `form:"sweetness,omitempty" json:"sweetness,omitempty" xml:"sweetness,omitempty"`
@@ -151,6 +166,16 @@ func (ut *BottlePayload) Validate() (err error) {
 	if ut.Name != nil {
 		if utf8.RuneCountInString(*ut.Name) < 2 {
 			err = goa.MergeErrors(err, goa.InvalidLengthError(`response.name`, *ut.Name, utf8.RuneCountInString(*ut.Name), 2, true))
+		}
+	}
+	if ut.Rating != nil {
+		if *ut.Rating < 1 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError(`response.rating`, *ut.Rating, 1, true))
+		}
+	}
+	if ut.Rating != nil {
+		if *ut.Rating > 5 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError(`response.rating`, *ut.Rating, 5, false))
 		}
 	}
 	if ut.Review != nil {

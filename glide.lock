@@ -1,5 +1,5 @@
-hash: b0130311a1a22f10b931faeae349dfa6aae1093542ed4dd9ad6c1c86829363b5
-updated: 2016-10-19T12:13:13.548465387-05:00
+hash: d6264384a33bdba94d7bbcea6dd7f84e90950f0294b69af234fc2f8a63dea890
+updated: 2016-10-19T14:50:36.024368596-05:00
 imports:
 - name: bitbucket.org/pkg/inflect
   version: 8961c3750a47
@@ -15,6 +15,8 @@ imports:
   - log
 - name: github.com/go-logfmt/logfmt
   version: d4327190ff838312623b09bfeb50d7c93c8d9c1d
+- name: github.com/go-sql-driver/mysql
+  version: 0b58b37b664c21f3010e836f1b931e1d0b0b0685
 - name: github.com/go-stack/stack
   version: 100eb0c0a9c5b306ca2fb4f165df21d80ada4b82
 - name: github.com/goadesign/goa
@@ -40,13 +42,16 @@ imports:
   - controllers
   - store
   - tool/cli
-  - design
 - name: github.com/goadesign/gorma
   version: ce2a7ae7ddc50d19cf2c4cd71e3f187c20b98872
   subpackages:
   - dsl
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/jinzhu/gorm
+  version: 5d853fc53c446a8ce4c60bd85a771b4d5c54999d
+- name: github.com/jinzhu/inflection
+  version: 74387dc39a75e970e7a3ae6a3386b5bd2e5c5cff
 - name: github.com/kr/logfmt
   version: b84e30acd515aadc4b783ad4ff83aff3299bdfe0
 - name: github.com/kr/pretty
@@ -55,6 +60,10 @@ imports:
   version: 7cafcd837844e784b526369c9bce262804aebc60
 - name: github.com/manveru/faker
   version: 717f7cf83fb78669bfab612749c2e8ff63d5be11
+- name: github.com/mattes/migrate
+  version: ce1b59bb819416ca67422929b1cb48bb342720b6
+  subpackages:
+  - driver/mysql
 - name: github.com/pkg/errors
   version: 839d9e913e063e28dfd0e6c7b7512793e0a48be9
 - name: github.com/satori/go.uuid
@@ -66,12 +75,12 @@ imports:
 - name: github.com/zach-klippenstein/goregen
   version: 795b5e3961ea1912fde60af417ad85e86acc0d6a
 - name: golang.org/x/net
-  version: a625e3953219464fdd5611bb48bf87c927717295
+  version: 3bafa3320efdf0c95d056586aa9abdd05ad72ee1
   subpackages:
   - context
   - websocket
 - name: golang.org/x/tools
-  version: 860883f6daa98743766727e8f7e4305661fa2748
+  version: 8e53eb937b67fe74bcc9a2071d25c0397101637f
   subpackages:
   - go/ast/astutil
 devImports: []
